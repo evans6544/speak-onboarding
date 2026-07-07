@@ -15,9 +15,13 @@ const tableHeadClassName =
 const tableCellClassName =
   "whitespace-nowrap px-4 py-4 text-sm text-zinc-700 dark:text-zinc-300";
 
-const decisionStyles: Record<Applicant["stage1_decision"], string> = {
+type DecisionValue = Applicant["stage1_decision"] | Applicant["final_decision"];
+
+const decisionStyles: Record<DecisionValue, string> = {
   pending:
     "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200",
+  selected:
+    "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200",
   approved:
     "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200",
   rejected:
@@ -32,7 +36,7 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
-function DecisionBadge({ value }: { value: Applicant["stage1_decision"] }) {
+function DecisionBadge({ value }: { value: DecisionValue }) {
   return (
     <span
       className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold capitalize ${decisionStyles[value]}`}

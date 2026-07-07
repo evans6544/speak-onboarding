@@ -8,7 +8,7 @@ export type Applicant = {
   position: string;
   social_media: string | null;
   current_occupation: string;
-  stage1_decision: "pending" | "approved" | "rejected";
+  stage1_decision: "pending" | "selected" | "rejected";
   task: string | null;
   task_sent: boolean;
   final_decision: "pending" | "approved" | "rejected";
