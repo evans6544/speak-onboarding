@@ -22,7 +22,7 @@ const decisionStyles: Record<DecisionValue, string> = {
     "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200",
   selected:
     "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200",
-  approved:
+  accepted:
     "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200",
   rejected:
     "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200",
@@ -106,6 +106,7 @@ export default async function DashboardPage() {
                     <th className={tableHeadClassName}>Current Occupation</th>
                     <th className={tableHeadClassName}>Stage 1 Decision</th>
                     <th className={tableHeadClassName}>Task Sent</th>
+                    <th className={tableHeadClassName}>Task Submitted</th>
                     <th className={tableHeadClassName}>Final Decision</th>
                     <th className={tableHeadClassName}>Created At</th>
                     <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
@@ -134,6 +135,9 @@ export default async function DashboardPage() {
                       </td>
                       <td className={tableCellClassName}>
                         <BooleanBadge value={applicant.task_sent} />
+                      </td>
+                      <td className={tableCellClassName}>
+                        <BooleanBadge value={applicant.task_submitted} />
                       </td>
                       <td className={tableCellClassName}>
                         <DecisionBadge value={applicant.final_decision} />

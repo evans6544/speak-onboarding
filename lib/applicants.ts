@@ -11,7 +11,11 @@ export type Applicant = {
   stage1_decision: "pending" | "selected" | "rejected";
   task: string | null;
   task_sent: boolean;
-  final_decision: "pending" | "approved" | "rejected";
+  submission_link: string | null;
+  submission_comments: string | null;
+  task_submitted: boolean;
+  task_submitted_at: string | null;
+  final_decision: "pending" | "accepted" | "rejected";
   final_email_sent: boolean;
 };
 
@@ -26,6 +30,10 @@ const applicantColumns = `
   stage1_decision,
   task,
   task_sent,
+  submission_link,
+  submission_comments,
+  task_submitted,
+  task_submitted_at,
   final_decision,
   final_email_sent
 `;

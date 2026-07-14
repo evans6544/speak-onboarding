@@ -34,7 +34,8 @@ export default function Stage1ReviewForm({
         </h2>
         <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
           Add the task and assessment notes before selecting an applicant for
-          the next stage. Emails are not sent from this form yet.
+          the next stage. Selecting sends the task email; rejecting sends the
+          rejection email.
         </p>
       </div>
 

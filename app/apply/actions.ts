@@ -6,6 +6,7 @@ import {
   validateApplicationInput,
   type ApplicationFieldErrors,
 } from "@/lib/application-validation";
+import { sendApplicationSubmittedEmails } from "@/lib/application-emails";
 
 export type SubmitApplicationResult =
   | { success: true }
@@ -41,6 +42,16 @@ export async function submitApplication(
     return {
       success: false,
       error: "Something went wrong while saving your application. Please try again.",
+    };
+  }
+
+  const emailResult = await sendApplicationSubmittedEmails(data);
+
+  if (!emailResult.ok) {
+    console.error("Failed to send application emails:", emailResult.error);
+    return {
+      success: false,
+      error: `Your application was saved, but email sending failed: ${emailResult.error}`,
     };
   }
 
