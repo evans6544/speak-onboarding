@@ -1,7 +1,9 @@
 "use client";
 
+import type { FormEvent } from "react";
 import { useActionState } from "react";
 import { submitTask, type TaskSubmissionState } from "./actions";
+import { normalizeSubmissionUrl } from "./submission-url";
 
 const initialState: TaskSubmissionState = {
   success: false,
@@ -22,8 +24,31 @@ export default function TaskSubmissionForm({
     initialState,
   );
 
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    const submissionLinkInput = event.currentTarget.elements.namedItem(
+      "submissionLink",
+    );
+
+    if (!(submissionLinkInput instanceof HTMLInputElement)) {
+      event.preventDefault();
+      return;
+    }
+
+    const result = normalizeSubmissionUrl(submissionLinkInput.value);
+
+    if (!result.ok) {
+      event.preventDefault();
+      submissionLinkInput.setCustomValidity(result.error);
+      submissionLinkInput.reportValidity();
+      return;
+    }
+
+    submissionLinkInput.setCustomValidity("");
+    submissionLinkInput.value = result.url;
+  }
+
   return (
-    <form action={formAction} className="mt-8 space-y-5">
+    <form action={formAction} onSubmit={handleSubmit} className="mt-8 space-y-5">
       <input type="hidden" name="applicantId" value={applicantId} />
 
       <div>
@@ -31,15 +56,20 @@ export default function TaskSubmissionForm({
           htmlFor="submissionLink"
           className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
         >
-          Submission link
+          Link to completed work
         </label>
         <input
           id="submissionLink"
           name="submissionLink"
-          type="url"
+          type="text"
+          inputMode="url"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           required
           defaultValue={defaultSubmissionLink ?? ""}
-          placeholder="https://..."
+          placeholder="Google Drive, OneDrive, GitHub, YouTube, or another webpage link"
+          onInput={(event) => event.currentTarget.setCustomValidity("")}
           className="mt-1.5 w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-400"
         />
       </div>

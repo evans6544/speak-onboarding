@@ -92,6 +92,12 @@ export default async function SubmitTaskPage({
           <p className="mt-3 text-zinc-600 dark:text-zinc-400">
             {applicant.full_name}, submit your completed task below.
           </p>
+          <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+            Please provide a shareable link to your completed work. You may
+            submit a Google Drive, OneDrive, Dropbox, GitHub, YouTube, or other
+            webpage link. Ensure that the link permissions allow the SPEAK team
+            to view the work.
+          </p>
 
           {applicant.task_submitted ? (
             <div className="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">

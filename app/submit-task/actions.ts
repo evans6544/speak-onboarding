@@ -3,27 +3,21 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/server";
 import { sendTaskSubmittedEmail } from "@/lib/application-emails";
+import { normalizeSubmissionUrl } from "./submission-url";
 
 export type TaskSubmissionState = {
   success: boolean;
   message: string;
 };
 
-function isValidHttpUrl(value: string) {
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
 export async function submitTask(
   _previousState: TaskSubmissionState,
   formData: FormData,
 ): Promise<TaskSubmissionState> {
   const applicantId = String(formData.get("applicantId") ?? "").trim();
-  const submissionLink = String(formData.get("submissionLink") ?? "").trim();
+  const submissionUrl = normalizeSubmissionUrl(
+    String(formData.get("submissionLink") ?? ""),
+  );
   const comments = String(formData.get("comments") ?? "").trim();
 
   if (!applicantId) {
@@ -33,19 +27,14 @@ export async function submitTask(
     };
   }
 
-  if (!submissionLink) {
+  if (!submissionUrl.ok) {
     return {
       success: false,
-      message: "Submission link is required.",
+      message: submissionUrl.error,
     };
   }
 
-  if (!isValidHttpUrl(submissionLink)) {
-    return {
-      success: false,
-      message: "Enter a valid http or https submission link.",
-    };
-  }
+  const submissionLink = submissionUrl.url;
 
   if (comments.length > 2000) {
     return {
