@@ -1,5 +1,10 @@
-import { Resend } from "resend";
+import "server-only";
+
 import type { ApplicationInput } from "@/lib/application-validation";
+import {
+  getVerifiedGmailEmailClient,
+  type GmailEmailClient,
+} from "@/lib/email-transporter";
 
 type EmailResult =
   | { ok: true }
@@ -8,36 +13,30 @@ type EmailResult =
       error: string;
     };
 
-type EmailConfig =
-  | {
-      ok: true;
-      resend: Resend;
-      ceoEmail: string;
-      fromEmail: string;
+type MailOptions = Parameters<GmailEmailClient["transporter"]["sendMail"]>[0];
+
+async function sendEmail(
+  client: GmailEmailClient,
+  options: MailOptions,
+  failureLabel: string,
+): Promise<EmailResult> {
+  try {
+    const result = await client.transporter.sendMail(options);
+
+    if (result.rejected.length > 0) {
+      return {
+        ok: false,
+        error: `${failureLabel}: Gmail rejected the recipient address.`,
+      };
     }
-  | {
-      ok: false;
-      error: string;
-    };
 
-const requiredEmailEnv = ["RESEND_API_KEY", "CEO_EMAIL", "FROM_EMAIL"] as const;
-
-function getEmailConfig(): EmailConfig {
-  const missing = requiredEmailEnv.filter((key) => !process.env[key]);
-
-  if (missing.length > 0) {
+    return { ok: true };
+  } catch (error) {
     return {
       ok: false,
-      error: `Missing email configuration: ${missing.join(", ")}.`,
+      error: `${failureLabel}: ${error instanceof Error ? error.message : "Unknown email error."}`,
     };
   }
-
-  return {
-    ok: true,
-    resend: new Resend(process.env.RESEND_API_KEY as string),
-    ceoEmail: process.env.CEO_EMAIL as string,
-    fromEmail: process.env.FROM_EMAIL as string,
-  };
 }
 
 function escapeHtml(value: string) {
@@ -319,52 +318,40 @@ function finalDecisionHtml({
 export async function sendApplicationSubmittedEmails(
   input: ApplicationInput,
 ): Promise<EmailResult> {
-  const config = getEmailConfig();
+  const config = await getVerifiedGmailEmailClient();
 
   if (!config.ok) {
     return config;
   }
 
-  const { resend, ceoEmail, fromEmail } = config;
-
-  try {
-    const applicantEmail = await resend.emails.send({
-      from: fromEmail,
+  const { client } = config;
+  const applicantEmail = await sendEmail(
+    client,
+    {
+      from: client.fromEmail,
       to: input.email,
       subject: "We received your SPEAK Lithuania application",
       text: applicantConfirmationText(input),
       html: applicantConfirmationHtml(input),
-    });
+    },
+    "Applicant confirmation email failed",
+  );
 
-    if (applicantEmail.error) {
-      return {
-        ok: false,
-        error: `Applicant confirmation email failed: ${applicantEmail.error.message}`,
-      };
-    }
+  if (!applicantEmail.ok) {
+    return applicantEmail;
+  }
 
-    const ceoEmailResult = await resend.emails.send({
-      from: fromEmail,
-      to: ceoEmail,
+  return sendEmail(
+    client,
+    {
+      from: client.fromEmail,
+      to: client.ceoEmail,
       subject: `New SPEAK application: ${input.fullName}`,
       text: ceoNotificationText(input),
       html: ceoNotificationHtml(input),
-    });
-
-    if (ceoEmailResult.error) {
-      return {
-        ok: false,
-        error: `CEO notification email failed: ${ceoEmailResult.error.message}`,
-      };
-    }
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : "Unknown email error.",
-    };
-  }
-
-  return { ok: true };
+    },
+    "CEO notification email failed",
+  );
 }
 
 export async function sendStage1TaskEmail({
@@ -378,7 +365,7 @@ export async function sendStage1TaskEmail({
   email: string;
   task: string;
 }): Promise<EmailResult> {
-  const config = getEmailConfig();
+  const config = await getVerifiedGmailEmailClient();
 
   if (!config.ok) {
     return config;
@@ -393,29 +380,17 @@ export async function sendStage1TaskEmail({
 
   const submissionLink = `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "")}/submit-task?applicantId=${encodeURIComponent(applicantId)}`;
 
-  try {
-    const taskEmail = await config.resend.emails.send({
-      from: config.fromEmail,
+  return sendEmail(
+    config.client,
+    {
+      from: config.client.fromEmail,
       to: email,
       subject: "Congratulations! You've progressed to the next stage",
       text: stage1TaskText({ fullName, task, submissionLink }),
       html: stage1TaskHtml({ fullName, task, submissionLink }),
-    });
-
-    if (taskEmail.error) {
-      return {
-        ok: false,
-        error: `Stage 1 task email failed: ${taskEmail.error.message}`,
-      };
-    }
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : "Unknown email error.",
-    };
-  }
-
-  return { ok: true };
+    },
+    "Stage 1 task email failed",
+  );
 }
 
 export async function sendStage1RejectionEmail({
@@ -425,35 +400,23 @@ export async function sendStage1RejectionEmail({
   fullName: string;
   email: string;
 }): Promise<EmailResult> {
-  const config = getEmailConfig();
+  const config = await getVerifiedGmailEmailClient();
 
   if (!config.ok) {
     return config;
   }
 
-  try {
-    const rejectionEmail = await config.resend.emails.send({
-      from: config.fromEmail,
+  return sendEmail(
+    config.client,
+    {
+      from: config.client.fromEmail,
       to: email,
       subject: "Update on your SPEAK Lithuania application",
       text: stage1RejectionText({ fullName }),
       html: stage1RejectionHtml({ fullName }),
-    });
-
-    if (rejectionEmail.error) {
-      return {
-        ok: false,
-        error: `Stage 1 rejection email failed: ${rejectionEmail.error.message}`,
-      };
-    }
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : "Unknown email error.",
-    };
-  }
-
-  return { ok: true };
+    },
+    "Stage 1 rejection email failed",
+  );
 }
 
 export async function sendTaskSubmittedEmail({
@@ -469,7 +432,7 @@ export async function sendTaskSubmittedEmail({
   submissionLink: string;
   comments: string;
 }): Promise<EmailResult> {
-  const config = getEmailConfig();
+  const config = await getVerifiedGmailEmailClient();
 
   if (!config.ok) {
     return config;
@@ -484,10 +447,11 @@ export async function sendTaskSubmittedEmail({
 
   const dashboardLink = `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "")}/dashboard/${encodeURIComponent(applicantId)}`;
 
-  try {
-    const taskSubmittedEmail = await config.resend.emails.send({
-      from: config.fromEmail,
-      to: config.ceoEmail,
+  return sendEmail(
+    config.client,
+    {
+      from: config.client.fromEmail,
+      to: config.client.ceoEmail,
       subject: `Task submitted: ${fullName}`,
       text: taskSubmittedText({
         fullName,
@@ -503,22 +467,9 @@ export async function sendTaskSubmittedEmail({
         comments,
         dashboardLink,
       }),
-    });
-
-    if (taskSubmittedEmail.error) {
-      return {
-        ok: false,
-        error: `CEO task submission email failed: ${taskSubmittedEmail.error.message}`,
-      };
-    }
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : "Unknown email error.",
-    };
-  }
-
-  return { ok: true };
+    },
+    "CEO task submission email failed",
+  );
 }
 
 export async function sendFinalDecisionEmail({
@@ -530,15 +481,16 @@ export async function sendFinalDecisionEmail({
   email: string;
   decision: "accepted" | "rejected";
 }): Promise<EmailResult> {
-  const config = getEmailConfig();
+  const config = await getVerifiedGmailEmailClient();
 
   if (!config.ok) {
     return config;
   }
 
-  try {
-    const finalDecisionEmail = await config.resend.emails.send({
-      from: config.fromEmail,
+  return sendEmail(
+    config.client,
+    {
+      from: config.client.fromEmail,
       to: email,
       subject:
         decision === "accepted"
@@ -546,20 +498,7 @@ export async function sendFinalDecisionEmail({
           : "Update on your SPEAK Lithuania application",
       text: finalDecisionText({ fullName, decision }),
       html: finalDecisionHtml({ fullName, decision }),
-    });
-
-    if (finalDecisionEmail.error) {
-      return {
-        ok: false,
-        error: `Final decision email failed: ${finalDecisionEmail.error.message}`,
-      };
-    }
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : "Unknown email error.",
-    };
-  }
-
-  return { ok: true };
+    },
+    "Final decision email failed",
+  );
 }
