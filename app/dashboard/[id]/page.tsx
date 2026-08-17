@@ -152,11 +152,24 @@ export default async function ApplicantDetailPage({
           <dl className="mt-2">
             <Field label="Full Name" value={applicant.full_name} />
             <Field label="Email" value={applicant.email} />
+            <Field label="Contact Number" value={applicant.phone_number} />
             <Field label="Position" value={applicant.position} />
             <Field label="Social Media" value={applicant.social_media} />
             <Field
               label="Current Occupation"
               value={applicant.current_occupation}
+            />
+            <Field
+              label="Introduction Video"
+              value={
+                applicant.introduction_video_url ? (
+                  <ExternalLink href={applicant.introduction_video_url} />
+                ) : null
+              }
+            />
+            <Field
+              label="Application Comment"
+              value={applicant.application_comment}
             />
             <Field
               label="Stage 1 Decision"

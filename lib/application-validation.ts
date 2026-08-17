@@ -1,9 +1,12 @@
 export type ApplicationInput = {
   fullName: string;
   email: string;
+  phoneNumber: string;
   position: string;
   socialMedia: string;
   currentOccupation: string;
+  applicationComment: string;
+  introductionVideoUrl: string;
 };
 
 export type ApplicationFieldErrors = Partial<
@@ -16,15 +19,52 @@ export type ApplicationValidationResult =
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+function normalizePublicUrl(value: string) {
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) {
+    return "";
+  }
+
+  const candidate = /^https?:\/\//i.test(trimmedValue)
+    ? trimmedValue
+    : `https://${trimmedValue}`;
+
+  try {
+    return new URL(candidate).toString();
+  } catch {
+    return candidate;
+  }
+}
+
+function isValidPublicUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return (
+      (url.protocol === "http:" || url.protocol === "https:") &&
+      url.hostname.includes(".")
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function parseApplicationFormData(
   formData: FormData,
 ): ApplicationInput {
   return {
     fullName: String(formData.get("fullName") ?? "").trim(),
     email: String(formData.get("email") ?? "").trim().toLowerCase(),
+    phoneNumber: String(formData.get("phoneNumber") ?? "").trim(),
     position: String(formData.get("position") ?? "").trim(),
     socialMedia: String(formData.get("socialMedia") ?? "").trim(),
     currentOccupation: String(formData.get("occupation") ?? "").trim(),
+    applicationComment: String(
+      formData.get("applicationComment") ?? "",
+    ).trim(),
+    introductionVideoUrl: normalizePublicUrl(
+      String(formData.get("introductionVideoUrl") ?? ""),
+    ),
   };
 }
 
@@ -65,6 +105,21 @@ export function validateApplicationInput(
   } else if (input.currentOccupation.length > 200) {
     fieldErrors.currentOccupation =
       "Current occupation must be 200 characters or fewer.";
+  }
+
+  if (input.applicationComment.length > 2000) {
+    fieldErrors.applicationComment =
+      "Comment must be 2000 characters or fewer.";
+  }
+
+  if (!input.introductionVideoUrl) {
+    fieldErrors.introductionVideoUrl = "Introduction video link is required.";
+  } else if (!isValidPublicUrl(input.introductionVideoUrl)) {
+    fieldErrors.introductionVideoUrl =
+      "Please enter a valid public video link.";
+  } else if (input.introductionVideoUrl.length > 2000) {
+    fieldErrors.introductionVideoUrl =
+      "Introduction video link must be 2000 characters or fewer.";
   }
 
   if (Object.keys(fieldErrors).length > 0) {

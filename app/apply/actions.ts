@@ -32,9 +32,12 @@ export async function submitApplication(
   const { error } = await supabase.from("applicants").insert({
     full_name: data.fullName,
     email: data.email,
+    phone_number: data.phoneNumber || null,
     position: data.position,
     social_media: data.socialMedia || null,
     current_occupation: data.currentOccupation,
+    application_comment: data.applicationComment || null,
+    introduction_video_url: data.introductionVideoUrl,
   });
 
   if (error) {

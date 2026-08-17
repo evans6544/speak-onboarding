@@ -56,8 +56,13 @@ function applicantConfirmationText(input: ApplicationInput) {
     "",
     "Application details:",
     `Position: ${input.position}`,
+    input.phoneNumber ? `Contact number: ${input.phoneNumber}` : "",
     `Current occupation/status: ${input.currentOccupation}`,
     input.socialMedia ? `Social media: ${input.socialMedia}` : "",
+    `Introduction video: ${input.introductionVideoUrl}`,
+    input.applicationComment
+      ? `Additional comment: ${input.applicationComment}`
+      : "",
     "",
     "SPEAK Lithuania",
   ]
@@ -73,10 +78,21 @@ function applicantConfirmationHtml(input: ApplicationInput) {
       <h2>Application details</h2>
       <ul>
         <li><strong>Position:</strong> ${escapeHtml(input.position)}</li>
+        ${
+          input.phoneNumber
+            ? `<li><strong>Contact number:</strong> ${escapeHtml(input.phoneNumber)}</li>`
+            : ""
+        }
         <li><strong>Current occupation/status:</strong> ${escapeHtml(input.currentOccupation)}</li>
         ${
           input.socialMedia
             ? `<li><strong>Social media:</strong> ${escapeHtml(input.socialMedia)}</li>`
+            : ""
+        }
+        <li><strong>Introduction video:</strong> <a href="${escapeHtml(input.introductionVideoUrl)}">${escapeHtml(input.introductionVideoUrl)}</a></li>
+        ${
+          input.applicationComment
+            ? `<li><strong>Additional comment:</strong> ${escapeHtml(input.applicationComment)}</li>`
             : ""
         }
       </ul>
@@ -91,9 +107,12 @@ function ceoNotificationText(input: ApplicationInput) {
     "",
     `Full name: ${input.fullName}`,
     `Email: ${input.email}`,
+    `Contact number: ${input.phoneNumber || "Not provided"}`,
     `Position: ${input.position}`,
     `Current occupation/status: ${input.currentOccupation}`,
     `Social media: ${input.socialMedia || "Not provided"}`,
+    `Introduction video: ${input.introductionVideoUrl}`,
+    `Additional comment: ${input.applicationComment || "Not provided"}`,
   ].join("\n");
 }
 
@@ -106,12 +125,18 @@ function ceoNotificationHtml(input: ApplicationInput) {
         <dd>${escapeHtml(input.fullName)}</dd>
         <dt><strong>Email</strong></dt>
         <dd>${escapeHtml(input.email)}</dd>
+        <dt><strong>Contact number</strong></dt>
+        <dd>${escapeHtml(input.phoneNumber || "Not provided")}</dd>
         <dt><strong>Position</strong></dt>
         <dd>${escapeHtml(input.position)}</dd>
         <dt><strong>Current occupation/status</strong></dt>
         <dd>${escapeHtml(input.currentOccupation)}</dd>
         <dt><strong>Social media</strong></dt>
         <dd>${escapeHtml(input.socialMedia || "Not provided")}</dd>
+        <dt><strong>Introduction video</strong></dt>
+        <dd><a href="${escapeHtml(input.introductionVideoUrl)}">${escapeHtml(input.introductionVideoUrl)}</a></dd>
+        <dt><strong>Additional comment</strong></dt>
+        <dd>${escapeHtml(input.applicationComment || "Not provided")}</dd>
       </dl>
     </div>
   `;

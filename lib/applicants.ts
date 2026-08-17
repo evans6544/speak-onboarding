@@ -5,9 +5,12 @@ export type Applicant = {
   created_at: string;
   full_name: string;
   email: string;
+  phone_number: string | null;
   position: string;
   social_media: string | null;
   current_occupation: string;
+  application_comment: string | null;
+  introduction_video_url: string | null;
   stage1_decision: "pending" | "selected" | "rejected";
   task: string | null;
   task_sent: boolean;
@@ -24,9 +27,12 @@ const applicantColumns = `
   created_at,
   full_name,
   email,
+  phone_number,
   position,
   social_media,
   current_occupation,
+  application_comment,
+  introduction_video_url,
   stage1_decision,
   task,
   task_sent,

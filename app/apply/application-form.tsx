@@ -156,6 +156,21 @@ export default function ApplicationForm() {
         </div>
 
         <div>
+          <label htmlFor="phoneNumber" className={labelClassName}>
+            Contact Number
+          </label>
+          <input
+            id="phoneNumber"
+            name="phoneNumber"
+            type="tel"
+            autoComplete="tel"
+            inputMode="tel"
+            placeholder="e.g. +370 600 12345"
+            className={inputClassName}
+          />
+        </div>
+
+        <div>
           <label htmlFor="position" className={labelClassName}>
             Position applying to
           </label>
@@ -192,6 +207,35 @@ export default function ApplicationForm() {
         </div>
 
         <div>
+          <label htmlFor="introductionVideoUrl" className={labelClassName}>
+            Introduction Video Link
+          </label>
+          <p
+            id="introductionVideoUrl-help"
+            className="mt-1 text-sm leading-5 text-zinc-500 dark:text-zinc-400"
+          >
+            Share a video up to 2 minutes introducing yourself and explaining
+            why you are interested in joining SPEAK Lithuania. Make sure the
+            link is viewable by the SPEAK team.
+          </p>
+          <input
+            id="introductionVideoUrl"
+            name="introductionVideoUrl"
+            type="text"
+            inputMode="url"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            maxLength={2000}
+            placeholder="YouTube, Google Drive, OneDrive, or another shareable link"
+            aria-invalid={Boolean(fieldErrors.introductionVideoUrl)}
+            aria-describedby="introductionVideoUrl-help"
+            className={`${inputClassName}${fieldErrors.introductionVideoUrl ? ` ${inputErrorClassName}` : ""}`}
+          />
+          <FieldError message={fieldErrors.introductionVideoUrl} />
+        </div>
+
+        <div>
           <label htmlFor="occupation" className={labelClassName}>
             Current Occupation / Status
           </label>
@@ -207,6 +251,27 @@ export default function ApplicationForm() {
             className={`${inputClassName}${fieldErrors.currentOccupation ? ` ${inputErrorClassName}` : ""}`}
           />
           <FieldError message={fieldErrors.currentOccupation} />
+        </div>
+
+        <div>
+          <label htmlFor="applicationComment" className={labelClassName}>
+            Additional Comment <span className="text-zinc-500">(optional)</span>
+          </label>
+          <textarea
+            id="applicationComment"
+            name="applicationComment"
+            rows={4}
+            maxLength={2000}
+            placeholder="Anything else you would like the SPEAK team to know"
+            aria-invalid={Boolean(fieldErrors.applicationComment)}
+            aria-describedby={
+              fieldErrors.applicationComment
+                ? "applicationComment-error"
+                : undefined
+            }
+            className={`${inputClassName}${fieldErrors.applicationComment ? ` ${inputErrorClassName}` : ""}`}
+          />
+          <FieldError message={fieldErrors.applicationComment} />
         </div>
       </div>
 
