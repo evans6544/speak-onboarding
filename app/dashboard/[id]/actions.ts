@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/server";
+import { isCeoAuthenticated } from "@/lib/ceo-auth";
 import {
   sendFinalDecisionEmail,
   sendStage1RejectionEmail,
@@ -29,6 +30,13 @@ export async function updateStage1Decision(
   _previousState: Stage1ReviewState,
   formData: FormData,
 ): Promise<Stage1ReviewState> {
+  if (!(await isCeoAuthenticated())) {
+    return {
+      success: false,
+      message: "Your CEO session has expired. Sign in again.",
+    };
+  }
+
   const applicantId = String(formData.get("applicantId") ?? "");
   const decision = String(formData.get("decision") ?? "");
   const task = String(formData.get("task") ?? "").trim();
@@ -168,6 +176,13 @@ export async function updateFinalDecision(
   _previousState: FinalDecisionState,
   formData: FormData,
 ): Promise<FinalDecisionState> {
+  if (!(await isCeoAuthenticated())) {
+    return {
+      success: false,
+      message: "Your CEO session has expired. Sign in again.",
+    };
+  }
+
   const applicantId = String(formData.get("applicantId") ?? "");
   const decision = String(formData.get("decision") ?? "");
 

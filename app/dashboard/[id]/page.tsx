@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getApplicant, type Applicant } from "@/lib/applicants";
+import { isCeoAuthenticated, requireCeoSession } from "@/lib/ceo-auth";
 import FinalDecisionForm from "./final-decision-form";
 import Stage1ReviewForm from "./stage1-review-form";
 
@@ -14,6 +15,10 @@ type ApplicantDetailPageProps = {
 export async function generateMetadata({
   params,
 }: ApplicantDetailPageProps): Promise<Metadata> {
+  if (!(await isCeoAuthenticated())) {
+    return { title: "CEO Login | SPEAK Dashboard" };
+  }
+
   const { id } = await params;
   const applicant = await getApplicant(id);
 
@@ -115,6 +120,7 @@ function BooleanBadge({ value }: { value: boolean }) {
 export default async function ApplicantDetailPage({
   params,
 }: ApplicantDetailPageProps) {
+  await requireCeoSession();
   const { id } = await params;
   const applicant = await getApplicant(id);
 

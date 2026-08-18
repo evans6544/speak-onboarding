@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/server";
+import { isCeoAuthenticated } from "@/lib/ceo-auth";
 
 export type DeleteApplicantState = {
   success: boolean;
@@ -15,6 +16,13 @@ export async function deleteApplicant(
   _previousState: DeleteApplicantState,
   formData: FormData,
 ): Promise<DeleteApplicantState> {
+  if (!(await isCeoAuthenticated())) {
+    return {
+      success: false,
+      message: "Your CEO session has expired. Sign in again.",
+    };
+  }
+
   const applicantId = String(formData.get("applicantId") ?? "").trim();
 
   if (!UUID_PATTERN.test(applicantId)) {

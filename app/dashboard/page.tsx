@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getApplicants } from "@/lib/applicants";
+import { requireCeoSession } from "@/lib/ceo-auth";
 import ApplicantsTable from "./applicants-table";
+import { logout } from "./auth-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardPage() {
+  await requireCeoSession();
   const applicants = await getApplicants();
 
   return (
@@ -29,12 +32,22 @@ export default async function DashboardPage() {
             </p>
           </div>
 
-          <Link
-            href="/"
-            className="inline-flex h-10 items-center justify-center rounded-lg border border-zinc-300 px-4 text-sm font-semibold text-zinc-700 transition-colors hover:bg-white dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
-          >
-            Back to home
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              className="inline-flex h-10 items-center justify-center rounded-lg border border-zinc-300 px-4 text-sm font-semibold text-zinc-700 transition-colors hover:bg-white dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+            >
+              Back to home
+            </Link>
+            <form action={logout}>
+              <button
+                type="submit"
+                className="inline-flex h-10 items-center justify-center rounded-lg border border-red-300 px-4 text-sm font-semibold text-red-700 transition-colors hover:bg-red-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950"
+              >
+                Sign out
+              </button>
+            </form>
+          </div>
         </div>
 
         <ApplicantsTable applicants={applicants} />
